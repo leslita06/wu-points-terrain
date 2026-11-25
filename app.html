@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#000000">
+<title>Points terrain : carte, tournée et performance des points de versement</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23FFDD00'/%3E%3Cpath d='M16 7c-4 0-7 3-7 7 0 5 7 11 7 11s7-6 7-11c0-4-3-7-7-7z' fill='%23000'/%3E%3Ccircle cx='16' cy='14' r='2.6' fill='%23FFDD00'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/leaflet.css?v=20261125a">
+<link rel="stylesheet" href="assets/app.css?v=20261125a">
+</head>
+<body>
+<header class="bar">
+  <a class="brand" href="index.html" aria-label="Retour à l'accueil"><span class="mark"></span><span class="bt">Points terrain</span></a>
+  <nav class="tabs" id="tabs"></nav>
+  <label class="zsel"><svg viewBox="0 0 24 24"><path d="M12 2C8 2 5 5 5 9c0 5 7 13 7 13s7-8 7-13c0-4-3-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg><span class="lbl">Ma zone</span><select id="zone"></select></label>
+</header>
+
+<main>
+  <!-- CARTE -->
+  <section class="view" id="v-carte">
+    <div class="mapw"><div id="map"></div>
+      <div class="mfilt" id="mfilt">
+        <div class="chips" id="f-type"></div>
+        <div class="chips" id="f-etat"></div>
+      </div>
+    </div>
+    <aside class="mside">
+      <div class="ms-h"><h2 id="ms-t"></h2><p class="sub" id="ms-s"></p></div>
+      <div class="kpis" id="k-carte"></div>
+      <div class="legend">
+        <span><i class="dot etat-hausse"></i>En hausse</span><span><i class="dot etat-stable"></i>Stable</span><span><i class="dot etat-baisse"></i>En baisse</span><span><i class="dot etat-inactif"></i>Inactif 7 j et plus</span>
+        <span><i class="shape sq"></i>Banque</span><span><i class="shape ci"></i>Microfinance</span><span><i class="shape di"></i>Portefeuille mobile</span>
+      </div>
+      <p class="note">Touchez un point pour ouvrir sa fiche.</p>
+    </aside>
+  </section>
+
+  <!-- MA ZONE -->
+  <section class="view" id="v-zone">
+    <div class="vh"><h2 id="z-t"></h2><p class="sub" id="z-s"></p></div>
+    <div class="kpis big" id="k-zone"></div>
+    <div class="grid2">
+      <div class="card"><div class="ch"><h3>Montant versé par mois</h3><span class="muted sm" id="z-ev"></span></div><div id="z-chart" class="bars"></div></div>
+      <div class="card"><div class="ch"><h3>Par partenaire</h3></div><div id="z-part"></div></div>
+    </div>
+    <div class="card">
+      <div class="ch"><h3>Mes points</h3>
+        <div class="seg" id="z-crit"><button data-c="mt" class="on">Montant du mois</button><button data-c="ev">Évolution</button></div></div>
+      <div class="rank2"><div><p class="rk-h good">Les mieux placés</p><ol class="pl" id="z-top"></ol></div><div><p class="rk-h bad">Les moins bien placés</p><ol class="pl" id="z-bot"></ol></div></div>
+      <p class="note" id="z-note"></p>
+    </div>
+  </section>
+
+  <!-- TOURNEE -->
+  <section class="view" id="v-tournee">
+    <div class="vh"><h2>Tournée de la semaine</h2><p class="sub" id="t-s"></p></div>
+    <div class="kpis" id="k-tour"></div>
+    <div class="why">
+      <span><i class="tg inactif">Inactif</i>aucune opération depuis 7 jours ou plus</span>
+      <span><i class="tg baisse">En baisse</i>novembre 20 % sous la moyenne d'août à octobre</span>
+      <span><i class="tg visite">À revoir</i>pas de visite depuis plus de 30 jours</span>
+    </div>
+    <div id="t-days"></div>
+    <div class="card" id="t-actions-c"><div class="ch"><h3>Prochaines actions</h3><span class="muted sm">Notées dans les comptes rendus</span></div><ul class="acts" id="t-actions"></ul></div>
+  </section>
+
+  <!-- ZONES BLANCHES -->
+  <section class="view" id="v-blanches">
+    <div class="vh"><h2>Zones blanches</h2><p class="sub" id="b-s"></p></div>
+    <div class="card slider">
+      <label for="xkm">Quartiers sans point actif à moins de <b id="xkm-v">3 km</b></label>
+      <input type="range" id="xkm" min="1" max="8" step="1" value="3">
+    </div>
+    <div class="kpis" id="k-bl"></div>
+    <div class="bl-grid">
+      <div class="card flush"><div id="map2"></div></div>
+      <div>
+        <div class="card"><div class="ch"><h3>Emplacements proposés</h3></div><ol class="props" id="b-props"></ol><p class="note" id="b-meth"></p></div>
+        <div class="card"><div class="ch"><h3>Quartiers éloignés</h3></div><ul class="ql" id="b-q"></ul></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CLASSEMENT -->
+  <section class="view" id="v-classement">
+    <div class="vh"><h2>Classement</h2><p class="sub" id="c-s"></p></div>
+    <div class="card flush">
+      <div class="ch pad"><h3>Commerciaux</h3><span class="muted sm">Portefeuille complet de chaque commercial</span></div>
+      <div class="tw"><table class="tbl" id="c-com"></table></div>
+    </div>
+    <div class="card flush">
+      <div class="ch pad"><h3>Points de la zone</h3>
+        <label class="inl"><span>Trier par</span><select id="c-crit"><option value="mt">Montant du mois</option><option value="ev">Évolution</option><option value="tr">Transferts</option><option value="v">Dernière visite</option></select></label></div>
+      <div class="tw"><table class="tbl" id="c-pts"></table></div>
+    </div>
+  </section>
+</main>
+
+<nav class="tabbar" id="tabbar"></nav>
+
+<!-- FICHE D'UN POINT -->
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-hidden="true">
+  <div class="grip"></div>
+  <button class="x" id="d-x" aria-label="Fermer"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  <div id="d-body"></div>
+</aside>
+
+<footer class="foot">Réseau type de points de versement, chiffres arrêtés au 24/11/2026. Montants en FCFA. Fond de carte © contributeurs OpenStreetMap.</footer>
+<script src="assets/leaflet.js?v=20261125a"></script>
+<script src="assets/data.js?v=20261125a"></script>
+<script src="assets/calc.js?v=20261125a"></script>
+<script src="assets/app.js?v=20261125a"></script>
+</body>
+</html>
